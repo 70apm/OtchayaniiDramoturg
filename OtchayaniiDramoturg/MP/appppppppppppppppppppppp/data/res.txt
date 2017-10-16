@@ -1,0 +1,81 @@
+import numpy as np
+
+"""открытие рабочих файлов с указанием мета их расположения"""
+file_inp = open('data/abaqus_INP')
+
+
+"создаём пустой словарь для требуемых данных"
+i = 0
+
+"всё что касается словорей"
+"сам словарь"
+inp_node = {}
+
+"""формеруемые элименты
+list_key - номер узла
+list_value - списки координат соответсвующих узлов"""
+inp_node_list_key = []
+inp_node_list_value = []
+
+
+"""аналогичный словарь по элементам"""
+inp_elemets = {}
+inp_el_list_key = []
+inp_el_list_value = []
+
+
+
+
+"чтение построчно файлов"
+
+for line in file_inp:
+
+    "сортирует только узлы"
+    if line == "*NODE\n":
+        for line_node in file_inp:
+            if line_node == "******* E L E M E N T S *************\n":
+                break
+
+            line_node = line_node.split(",")
+
+            inp_node_list_key.append(line_node[0])
+            inp_node_list_value.append(line_node[1:])
+
+    "сортируем только элементы"
+    if line == "*ELEMENT, type=T3D2, ELSET=Line1\n":
+        for line_elements in file_inp:
+
+            if line_elements == "*ELEMENT, type=CPS3, ELSET=Surface3\n":
+                continue
+            if line_elements == "":
+                break
+
+            line_elements = line_elements.split(",")
+
+            "составляем списки из ключей и значений"
+            inp_el_list_key.append(line_elements[0])
+            inp_el_list_value.append(line_elements[1:])
+
+"из полученых списков формируем словарь"
+while i != len(inp_node_list_key):
+    inp_node[inp_node_list_key[i]] = inp_node_list_value[i]
+    i += 1
+
+"из полученых списков формируем словарь"
+i = 0
+while i != len(inp_el_list_key):
+    inp_elemets[inp_el_list_key[i]] = inp_el_list_value[i]
+    i += 1
+
+"создаём матрицу для дальнейшего заполнения"
+
+mas = np.zeros((len(inp_node), len(inp_node)))
+
+
+"чтение ключей построчно"
+for line in inp_el_list_value:
+    "чтение картежа по каждому числу"
+    for k in line:
+        "сам счётчик который по позиции K(которое является число в кортеже каждого ключа)" \
+        "по позиции он ставит 1. "
+        mas[int(k)-1, int(k)-1] += 1
